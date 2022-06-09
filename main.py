@@ -3,7 +3,9 @@ import random
 import ann as ann
 import numpy as np
 import minimax as mnm
+import test_algo as ta
 #define next turn
+
 def next_turn(row, column):
     global player,mode
     #player turn
@@ -22,10 +24,16 @@ def next_turn(row, column):
 
 
         #choose mode for ai
+        x=0
+        y=0
         if mode==1:
-            x,y=mnm.ai_brain(log_ai)
+            x,y,test=mnm.ai_brain(log_ai)
+            #x,y =ta.test(log_ai)
+            #test=mnm.heuristic(log_ai)
+            label.config(text=str(test))
         elif mode==2:
             x,y=ann.ai_brain(log_ai)
+
         if buttons[x][y]['text']==""and check_winner() is False :
             log_ai[x][y]=1
             buttons[x][y]['text'] = 'o'
@@ -127,7 +135,12 @@ for i in range(20):
     for j in range(20):
         x.append(0)
     buttons.append(x)
-
+pre_elim=[]
+for i in range(20):
+    x=[]
+    for j in range(20):
+        x.append(False)
+    pre_elim.append(x)
 
 def choose_algo():
     global mode
@@ -147,7 +160,7 @@ options = [
 clicked = StringVar()
 
 # initial menu text
-clicked.set("minimax_prune")
+clicked.set("minimax prune")
 
 # Create Dropdown menu
 drop = OptionMenu(window, clicked, *options)

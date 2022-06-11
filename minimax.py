@@ -1,35 +1,34 @@
 import numpy as np
 
 def ai_brain(_input):
+    # xử lý bước cuối để ra quyết định
     res_row=0
     res_col=0
     depth=2
-    res=-pow(200,5)
+    minimax_res=algo(_input,depth,True)
+    res,res_log=minimax_res
     for i in range(20):
         for j in range(20):
-            if _input[i][j]==0:
-                _input[i][j] = 1
-                cur=algo(_input,depth,True)
-                if cur>res:
-                    res_row=i
-                    res_col=j
-                    res=cur
-                _input[i][j]=0
+            if res_log[i][j]!=_input[i][j]:
+                res_row=i
+                res_col=j
     return res_row,res_col,res
 
 def heuristic(_input):
     res=0
-
+    # hàm heuristic chấm điểm cho từng thế cờ bằng cách tính hàng dọc ngang chéo
     for row in range(20):
         x=[]
         for column in range(20):
             x.append(_input[row][column])
         res+=check_row(x,20)
+
     for column in range(20):
         x = []
         for row in range(20):
             x.append(_input[row][column])
         res+=check_row(x,20)
+
     for column in range(20):
         x=[]
         for row in range(20-column):
@@ -49,17 +48,23 @@ def heuristic(_input):
             y.append(_input[19+row-column][column])
         res+=check_row(y,20-row)
     return res
+
 def algo(_input, depth, is_ai):
+    # thuật minimax
+    res_log=_input
     if depth==0:
-        return heuristic(_input)
+        return heuristic(_input),_input
     if is_ai:
         maxEval=-pow(200,5)
         for i in range(20):
             for j in range(20):
                 if _input[i][j]!=0:
                     _input[i][j]=1
-                    eval=algo(_input,depth-1,False)
-                    maxEval=max(eval,maxEval)
+                    eval,cur_log=algo(_input,depth-1,False)
+                    if eval>maxEval:
+                        res_log=cur_log
+                        maxEval=eval
+
                     _input[i][j] = 0
 
         return maxEval
@@ -69,84 +74,76 @@ def algo(_input, depth, is_ai):
             for j in range(20):
                 if _input[i][j] != 0:
                     _input[i][j] = -1
-                    eval = algo(_input, depth - 1, True)
-                    minEval =min(eval, minEval)
+                    eval,cur_log = algo(_input, depth - 1, True)
+                    if eval<minEval:
+                        minEval=eval
+                        res_log=cur_log
                     _input[i][j] = 0
 
-        return minEval
+        return minEval,res_log
+
 def check_row(_input,size):
+    # check điểm của từng hàng, cột, đường chéo
     res=0
     local=0
-    near_ai=0
-    near_pl=0
+    near_ai=-1
+    near_pl=-1
     cur=0
-    first=20
     for i in range(size):
-        if _input[i]!=0:
-            first=i
-            if _input[i]==1:
-                near_ai=1
-                cur=1
-            if _input[i]==-1:
-                near_pl=1
-                cur=-1
-            break
-    for i in range(first,size):
-        if _input[i]==0:
-            local+=cur
-            cur=0
-            near_pl+=1
-            near_ai+=1
-            
-        elif _input[i] == 1:
-            if near_ai==0:
-                if i>4:
-                    cur=1
-                near_ai=1
-                near_pl+=1
-            elif near_ai==1:
-                cur*=200
-                if near_pl!=0:
-                    near_pl+=1
-            else:
-                if near_ai>near_pl:
-                    if near_ai>5:
-                        local+=cur
-                        res+=local
-                    local=0
-                cur=1
-                near_ai=1
-                if near_pl!=0:
-                    near_pl+=1
-        else:
-            if near_pl==0:
-                if i>4:
-                    cur=-1
-                near_pl=1
-                near_ai+=1
-            elif near_pl==1:
-                cur*=200
-                if near_ai!=0:
-                    near_ai+=1
-            else:
-                if near_ai<near_pl:
-                    if near_pl>5:
-                        local+=cur
-                        res+=local
-                    local=0
+        if _input[i]==1:
+            if i-near_ai>5 :
+                res+=local
+                local=0
+            near_ai=i
+            while _input[i]==1:
+                i+=1
+                if i==size:
+                    break
+            if i == size:
+                if near_pl < size-5:
+                    local += pow(200, i - near_ai)
 
-                if near_ai!=0:
-                    near_ai+=1
-                cur=-1
-                near_pl=1
+                    res += local
+            else:
+                local+=pow(200, i - near_ai)
+
+
+            near_ai=i
+        elif _input[i]==-1:
+            if i-near_pl>5 :
+                res+=local
+                local=0
+
+            near_pl=i
+            while _input[i]==-1 :
+                i+=1
+                if i==size:
+                    break
+
+            if i == size:
+                if near_ai < size-5:
+                    local += -pow(200, i - near_ai)
+                    res += local
+            else:
+                local+=-pow(200, i - near_ai)
+            near_ai=i
+        else:
+            if i==size-1:
+                res+=local
+
     return res
 
 
 def update_pre_elim(_input):
+    # lọc các đầu vào không cần thiết
     max_i=20
     min_i=0
     max_j=20
     min_j=0
+    #mục tiêu thu nhỏ phạm vi của nghiệm, đầu vào phải nằm trong hình chữ nhật với chỉ số hàng/cột nhỏ nhất/lớn nhất
+    #không cách quá các ô đã được đánh 5 đơn vị
+
+
     for i in range(20):
         for j in range(20):
             if _input[i][j]!=0:
@@ -170,5 +167,27 @@ def update_pre_elim(_input):
                 if i>3:
                     max_j=24-i
     return min_i,max_i,min_j,max_j
-x=[1,1,1,0,0,0,0,-1,-1]
-print (check_row(x,9))
+x=[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,-1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],]
+#test thuật toán trong hàm
+
+i,y,z=ai_brain(x)
+print (i,y,z,x[i][y] )

@@ -7,7 +7,8 @@ import test_algo as ta
 #define next turn
 
 def next_turn(row, column):
-    global player,mode
+    #command khi bấm vào mỗi ô trên bàn
+    global player,mode,log_ai
     #player turn
     while mode == 0:
         return
@@ -30,6 +31,7 @@ def next_turn(row, column):
             x,y,test=mnm.ai_brain(log_ai)
             #x,y =ta.test(log_ai)
             #test=mnm.heuristic(log_ai)
+            print(x,y,test)
             label.config(text=str(test))
         elif mode==2:
             x,y=ann.ai_brain(log_ai)
@@ -46,7 +48,7 @@ def next_turn(row, column):
 
 
 def check_winner():
-    #check winning condition
+    #check điều kiện thắng
     counter=0
     for row in range(20):
         for column in range(19):
@@ -102,7 +104,7 @@ def check_winner():
         return False
 
 def empty_space():
-    #check for are there any spaces on the board
+    #check xem còn quân nào có thể đi trên bàn cờ không
     spaces =400
     for i in range(20):
         for j in range(20):
@@ -114,7 +116,8 @@ def empty_space():
         return True
 
 def new_game():
-    #create new game
+    #tạo game mới
+
     global log_ai,mode
     mode=0
     log_ai=np.zeros((20,20))
@@ -127,7 +130,7 @@ window.title("gomoku")
 players=["x","o"]
 turn=0
 player='x'
-mode=0
+mode=1
 log_ai= np.zeros((20,20))
 buttons= []
 for i in range(20):
@@ -143,23 +146,24 @@ for i in range(20):
     pre_elim.append(x)
 
 def choose_algo():
+    #chọn thuật toán khác nhau
     global mode
+    new_game()
     if clicked.get() == "minimax prune":
         mode = 1
     elif clicked.get() == "ANN model":
         mode = 2
 
 
-# Dropdown menu options
+# các thuật toán
 options = [
     "minimax prune",
     "ANN model"
 ]
 
-# datatype of menu text
 clicked = StringVar()
 
-# initial menu text
+# thuật toán default
 clicked.set("minimax prune")
 
 # Create Dropdown menu

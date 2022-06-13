@@ -1,5 +1,5 @@
 import numpy as np
-
+import  CNN_train_heuristic
 def ai_brain(_input):
     # xử lý bước cuối để ra quyết định
     res_row=0

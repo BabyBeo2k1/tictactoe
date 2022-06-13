@@ -1,6 +1,6 @@
 from tkinter import *
 import random
-import ann as ann
+import CNN_train_heuristic as ann
 import numpy as np
 import minimax as mnm
 import test_algo as ta

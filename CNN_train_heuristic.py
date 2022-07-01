@@ -1,5 +1,3 @@
-from tokenize import Double
-
 import numpy as np
 import pandas as pd
 import os
@@ -15,32 +13,32 @@ device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 input_size=400
 hidden_size=100
 num_epochs=8
-batch_size=80
+batch_size=1000
 learning_rate=0.01
 momentum=0.5
 f_log=open("log.txt","r")
 f_res=open("res.txt","r")
 x_input=np.array([])
-x_input=np.reshape(x_input,(0,20,20))
+x_input=np.reshape(x_input,(0,1,20,20))
 y_output=np.array([])
 y_output=np.reshape(y_output,(0,1))
 for i in range(1000):
     x=""
     for i in  range(20):
         x=x+f_log.readline()+"\n"
-    cur_input=np.fromstring(x ,sep=' ')
-    cur_input=np.reshape(cur_input,(1,20,20))
+    cur_input=np.fromstring(x ,dtype=np.double,sep=' ')
+    cur_input=np.reshape(cur_input,(1,1,20,20))
     y=f_res.readline()
-    cur_output=np.fromstring(y,sep=" ")
+    cur_output=np.fromstring(y,dtype=np.double,sep=" ")
     cur_output=np.reshape(cur_output,(1,1))
     y_output=np.append(y_output,cur_output,axis=0)
     x_input=np.append(x_input,cur_input,axis=0)
 print (x_input.shape)
-x_input.astype(Double)
-y_output.astype(Double )
 print(y_output.shape)
 x_train=torch.from_numpy(x_input[:800])
+
 y_train=torch.from_numpy(y_output[800:])
+
 print(x_train.shape)
 
 class tictactoe_train(Dataset):
@@ -79,7 +77,7 @@ test_loader=DataLoader(dataset=dataset_test,
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(80, 1, kernel_size=5)
+        self.conv1 = nn.Conv2d(1,10, kernel_size=5)
         self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
         self.conv2_drop = nn.Dropout2d()  #Dropout
         self.fc1 = nn.Linear(320, 50)
@@ -87,7 +85,7 @@ class CNN(nn.Module):
 
     def forward(self, x):
         #Convolutional Layer/Pooling Layer/Activation
-        x = F.relu(F.max_pool2d(self.conv1(x), 2)) 
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))
         #Convolutional Layer/Dropout/Pooling Layer/Activation
         x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
         x = x.view(-1, 320)
@@ -102,6 +100,7 @@ class CNN(nn.Module):
 def train(epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.cuda(), target.cuda()
         #Variables in Pytorch are differenciable. 
         data, target = Variable(data), Variable(target)
         #This will zero out the gradients for this batch. 
@@ -124,6 +123,7 @@ def test():
     test_loss = 0
     correct = 0
     for data, target in test_loader:
+        data, target = data.cuda(), target.cuda()
         data, target = Variable(data, volatile=True), Variable(target)
         output = model(data)
         test_loss += F.nll_loss(output, target, size_average=False).data[0] # sum up batch loss
@@ -136,7 +136,8 @@ def test():
         100. * correct / len(test_loader.dataset)))
 
 model = CNN()
-
+model=model.double()
+model.cuda()
 optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
 
 for epoch in range(1,11):

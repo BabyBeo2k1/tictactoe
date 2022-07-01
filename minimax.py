@@ -1,19 +1,18 @@
 import numpy as np
-import  CNN_train_heuristic
+import torch.nn as nn
+import torch.nn.functional as F
+import torch
 def ai_brain(_input):
-    # xử lý bước cuối để ra quyết định
-    res_row=0
-    res_col=0
+
     depth=2
     minimax_res=algo(_input,depth,True)
-    res,res_log=minimax_res
-    for i in range(20):
-        for j in range(20):
-            if res_log[i][j]!=_input[i][j]:
-                res_row=i
-                res_col=j
-    return res_row,res_col,res
+    res,res_row,res_col=minimax_res
 
+    return res_row,res_col,res
+def heuristic_nn(_input):
+    _input=np.reshape(_input,(1,1,20,20))
+    _input=torch.from_numpy(_input)
+    return model(_input)
 def heuristic(_input):
     res=0
     # hàm heuristic chấm điểm cho từng thế cờ bằng cách tính hàng dọc ngang chéo
@@ -48,39 +47,41 @@ def heuristic(_input):
             y.append(_input[19+row-column][column])
         res+=check_row(y,20-row)
     return res
-
 def algo(_input, depth, is_ai):
     # thuật minimax
-    res_log=_input
+    res_row=-1
+    res_col=-1
     if depth==0:
-        return heuristic(_input),_input
+        return heuristic_nn(_input),0,0
     if is_ai:
         maxEval=-pow(200,5)
         for i in range(20):
             for j in range(20):
-                if _input[i][j]!=0:
+                if _input[i][j]==0:
                     _input[i][j]=1
-                    eval,cur_log=algo(_input,depth-1,False)
+                    eval,m,n=algo(_input,depth-1,False)
                     if eval>maxEval:
-                        res_log=cur_log
+                        res_col=j
+                        res_row=i
                         maxEval=eval
 
                     _input[i][j] = 0
 
-        return maxEval
+        return maxEval,res_row,res_col
     else:
         minEval=pow(200,5)
         for i in range(20):
             for j in range(20):
-                if _input[i][j] != 0:
+                if _input[i][j] == 0:
                     _input[i][j] = -1
-                    eval,cur_log = algo(_input, depth - 1, True)
+                    eval,m,n = algo(_input, depth - 1, True)
                     if eval<minEval:
                         minEval=eval
-                        res_log=cur_log
+                        res_col=j
+                        res_row=i
                     _input[i][j] = 0
 
-        return minEval,res_log
+        return minEval,res_row,res_col
 
 def check_row(_input,size):
     # check điểm của từng hàng, cột, đường chéo
@@ -132,8 +133,6 @@ def check_row(_input,size):
                 res+=local
 
     return res
-
-
 def update_pre_elim(_input):
     # lọc các đầu vào không cần thiết
     max_i=20
@@ -171,10 +170,10 @@ x=[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-   [0,0,0,0,0,-1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,-1,-1,-1,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -188,6 +187,32 @@ x=[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],]
 #test thuật toán trong hàm
+class CNN(nn.Module):
+    def __init__(self):
+        super(CNN, self).__init__()
+        self.conv1 = nn.Conv2d(1,10, kernel_size=5)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.conv2_drop = nn.Dropout2d()  #Dropout
+        self.fc1 = nn.Linear(80, 50)
+        self.fc2 = nn.Linear(50, 1)
 
+    def forward(self, x):
+        #Convolutional Layer/Pooling Layer/Activation
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))
+        #Convolutional Layer/Dropout/Pooling Layer/Activation
+        x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
+        x = x.view(-1, 80)
+        #Fully Connected Layer/Activation
+        x = F.relu(self.fc1(x))
+        x = F.dropout(x, training=self.training)
+        #Fully Connected Layer/Activation
+        x = self.fc2(x)
+
+        #Softmax gets probabilities.
+        return F.sigmoid(x)
+x=np.array(x,dtype=float)
+model=CNN()
+model.double()
+model.load_state_dict(torch.load("model.pth"))
 i,y,z=ai_brain(x)
 print (i,y,z,x[i][y] )

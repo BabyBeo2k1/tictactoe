@@ -2,16 +2,19 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-def ai_brain(_input):
+def ai_brain(_input,mode):
 
     depth=2
-    minimax_res=algo(_input,depth,True)
+    minimax_res=algo(_input,depth,True,mode)
     res,res_row,res_col=minimax_res
 
     return res_row,res_col,res
 def heuristic_nn(_input):
     _input=np.reshape(_input,(1,1,20,20))
     _input=torch.from_numpy(_input)
+    model = CNN()
+    model.double()
+    model.load_state_dict(torch.load("model.pth"))
     return model(_input)
 def heuristic(_input):
     res=0
@@ -47,19 +50,22 @@ def heuristic(_input):
             y.append(_input[19+row-column][column])
         res+=check_row(y,20-row)
     return res
-def algo(_input, depth, is_ai):
+def algo(_input, depth, is_ai,mode):
     # thuật minimax
     res_row=-1
     res_col=-1
     if depth==0:
-        return heuristic_nn(_input),0,0
+        if mode==1:
+            return  heuristic(_input),0,0
+        else:
+            return heuristic_nn(_input),0,0
     if is_ai:
         maxEval=-pow(200,5)
         for i in range(20):
             for j in range(20):
                 if _input[i][j]==0:
                     _input[i][j]=1
-                    eval,m,n=algo(_input,depth-1,False)
+                    eval,m,n=algo(_input,depth-1,False,mode)
                     if eval>maxEval:
                         res_col=j
                         res_row=i
@@ -74,7 +80,7 @@ def algo(_input, depth, is_ai):
             for j in range(20):
                 if _input[i][j] == 0:
                     _input[i][j] = -1
-                    eval,m,n = algo(_input, depth - 1, True)
+                    eval,m,n = algo(_input, depth - 1, True,mode)
                     if eval<minEval:
                         minEval=eval
                         res_col=j
@@ -89,49 +95,31 @@ def check_row(_input,size):
     local=0
     near_ai=-1
     near_pl=-1
-    cur=0
-    for i in range(size):
-        if _input[i]==1:
-            if i-near_ai>5 :
-                res+=local
-                local=0
-            near_ai=i
-            while _input[i]==1:
-                i+=1
-                if i==size:
-                    break
-            if i == size:
-                if near_pl < size-5:
-                    local += pow(200, i - near_ai)
-
-                    res += local
-            else:
-                local+=pow(200, i - near_ai)
-
-
-            near_ai=i
-        elif _input[i]==-1:
-            if i-near_pl>5 :
-                res+=local
-                local=0
-
-            near_pl=i
-            while _input[i]==-1 :
-                i+=1
-                if i==size:
-                    break
-
-            if i == size:
-                if near_ai < size-5:
-                    local += -pow(200, i - near_ai)
-                    res += local
-            else:
-                local+=-pow(200, i - near_ai)
-            near_ai=i
+    cur=_input[0]
+    for i in range(1,size):
+        if _input[i]!=_input[i-1]:
+            cur=cur*200
         else:
-            if i==size-1:
-                res+=local
+            if _input[i - 1] == 1:
+                near_ai = i - 1
+            else:
+                near_pl = i - 1
+            if _input[i]==0:
+                local+=cur
+                cur=0
 
+            elif _input[i]==1:
+                if (i-near_ai)>5:
+                    res+=local
+                    local=0
+                else:
+                    local=0
+            else:
+                if(i-near_pl)>5:
+                    res+=local
+                    local=0
+                else:
+                    local=0
     return res
 def update_pre_elim(_input):
     # lọc các đầu vào không cần thiết
@@ -211,8 +199,5 @@ class CNN(nn.Module):
         #Softmax gets probabilities.
         return F.sigmoid(x)
 x=np.array(x,dtype=float)
-model=CNN()
-model.double()
-model.load_state_dict(torch.load("model.pth"))
 i,y,z=ai_brain(x)
 print (i,y,z,x[i][y] )

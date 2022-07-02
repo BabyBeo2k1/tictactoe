@@ -1,9 +1,6 @@
 from tkinter import *
-import random
-import CNN_train_heuristic as ann
 import numpy as np
 import minimax as mnm
-import test_algo as ta
 #define next turn
 
 def next_turn(row, column):
@@ -25,16 +22,7 @@ def next_turn(row, column):
 
 
         #choose mode for ai
-        x=0
-        y=0
-        if mode==1:
-            x,y,test=mnm.ai_brain(log_ai)
-            #x,y =ta.test(log_ai)
-            #test=mnm.heuristic(log_ai)
-            print(x,y,test)
-            label.config(text=str(test))
-        elif mode==2:
-            x,y=ann.ai_brain(log_ai)
+        x,y=mnm.ai_brain(log_ai,mode)
 
         if buttons[x][y]['text']==""and check_winner() is False :
             log_ai[x][y]=1

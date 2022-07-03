@@ -1,25 +1,47 @@
-def test(_input):
+def if_else(x):
+    for i in range(17):
+        for j in range(17):
+            if x[i][j-1] == 0 and x[i][j] == 1 and x[i][j+1] == 1 & & x[i][j+2] == 1 & & x[i][j+3] == 0){
+        if (heuristic(i, j-1) > heuristic(i, j+3))
+        return i, j - 1;
+        else return i, j + 3;
 
-    min_i = 0
-
-    min_j = 0
-    for i in range(20):
-        for j in range(20):
-            if _input[i][j] != 0:
-                if i > 3:
-                    min_i = i - 4
-
-    for i in range(20):
-        for j in range(20):
-            if _input[j][i] != 0:
-                if i > 3:
-                    min_j = i - 4
-    for i in range(min_i,20):
-        for j in range(min_j,20):
-            if _input[i][j]!=0:
-                min_i=i
-                min_j=j
-            else:
-                return min_i,min_j
-
-    return min_i,min_j
+    }
+    if (x[i - 1][j] == 0 & & x[i][j] == 1 & & x[i + 1][j] == 1 & & x[i + 2][j] == 1 & & x[i + 3][j] == 0){
+    if (heuristic(i - 1, j) > heuristic(i + 3, j)) return i-1, j;
+    else return i+3, j;
+    }
+    if (x[i - 1][j - 1] == 0 & & x[i][j] == 1 & & x[i + 1][j + 1] == 1 & & x[i + 2][j + 2] == 1 & & x[i + 3][j + 3] == 0){
+    if (heuristic(i - 1, j - 1) > heuristic(i + 3, j + 3)) return i-1, j-1;
+    else return i+3, j+3;
+    }
+    if (x[i + 3][j - 1] == 0 & & x[i + 2][j] == 1 & & x[i + 1][j + 1] == 1 & & x[i][j + 2] == 1 & & x[i - 1][j + 3] == 0){
+    if (heuristic(i + 3, j - 1) > heuristic(i - 1, j + 3)) return i+3, j-1;
+    else return i-1, j+3;
+    }
+    if (x[i][j - 1] == 1 & & x[i][j] == 1 & & x[i][j + 1] == 1 & & x[i][j + 2] == 1 & & x[i][j + 3] == 0){
+    return i, j + 3;
+    }
+    if (x[i - 1][j] == 1 & & x[i][j] == 1 & & x[i + 1][j] == 1 & & x[i + 2][j] == 1 & & x[i + 3][j] == 0){
+    return i + 3, j;
+    }
+    if (x[i - 1][j - 1] == 1 & & x[i][j] == 1 & & x[i + 1][j + 1] == 1 & & x[i + 2][j + 2] == 1 & & x[i + 3][j + 3] == 0){
+    return i + 3, j + 3;
+    }
+    if (x[i + 3][j - 1] == 1 & & x[i + 2][j] == 1 & & x[i + 1][j + 1] == 1 & & x[i][j + 2] == 1 & & x[i - 1][j + 3] == 0){
+    return i - 1, j + 3;
+    }
+    if (x[i][j - 1] == 0 & & x[i][j] == 1 & & x[i][j + 1] == 1 & & x[i][j + 2] == 1 & & x[i][j + 3] == 1){
+    return i, j - 1;
+    }
+    if (x[i - 1][j] == 0 & & x[i][j] == 1 & & x[i + 1][j] == 1 & & x[i + 2][j] == 1 & & x[i + 3][j] == 1){
+    return i - 1, j;
+    }
+    if (x[i - 1][j - 1] == 0 & & x[i][j] == 1 & & x[i + 1][j + 1] == 1 & & x[i + 2][j + 2] == 1 & & x[i + 3][j + 3] == 1){
+    return i - 1, j - 1;
+    }
+    if (x[i + 3][j - 1] == 0 & & x[i + 2][j] == 1 & & x[i + 1][j + 1] == 1 & & x[i][j + 2] == 1 & & x[i - 1][j + 3] == 1){
+    return i + 3, j - 1;
+    }
+    }
+    }

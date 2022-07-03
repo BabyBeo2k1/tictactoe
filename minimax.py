@@ -3,18 +3,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 def ai_brain(_input,mode):
+    if mode==3:
+        res_row,res_col=if_else(_input)
+    else:
+        depth=2
+        minimax_res=algo(_input,depth,True,mode)
+        res,res_row,res_col=minimax_res
 
-    depth=2
-    minimax_res=algo(_input,depth,True,mode)
-    res,res_row,res_col=minimax_res
-
-    return res_row,res_col,res
+    return res_row,res_col
 def heuristic_nn(_input):
     _input=np.reshape(_input,(1,1,20,20))
     _input=torch.from_numpy(_input)
-    model = CNN()
-    model.double()
-    model.load_state_dict(torch.load("model.pth"))
+
     return model(_input)
 def heuristic(_input):
     res=0
@@ -57,7 +57,7 @@ def algo(_input, depth, is_ai,mode):
     if depth==0:
         if mode==1:
             return  heuristic(_input),0,0
-        else:
+        elif mode==2:
             return heuristic_nn(_input),0,0
     if is_ai:
         maxEval=-pow(200,5)
@@ -90,14 +90,38 @@ def algo(_input, depth, is_ai,mode):
         return minEval,res_row,res_col
 
 def check_row(_input,size):
+    _input.append(0)
     # check điểm của từng hàng, cột, đường chéo
     res=0
-    local=0
     near_ai=-1
     near_pl=-1
-    cur=_input[0]
-    for i in range(1,size):
-        if _input[i]!=_input[i-1]:
+    for i in range(size+1):
+        local =-1
+        if _input[i]==1 or i==size:
+            if i-near_ai>5:
+                for j in range(near_ai+1,i):
+                    if _input[j]==-1:
+                        local*=200
+                    else:
+                        local=-1
+                        res+=local
+            near_ai=i
+            local=-1
+            res+=local
+    for i in range(size+1):
+        local=1
+        if _input[i]==-1 or i==size:
+            if i-near_pl>5:
+                for j in range(near_pl+1,i):
+                    if _input[j]==-1:
+                        local*=200
+                    else:
+                        local=1
+                        res+=local
+            near_pl=i
+            local=1
+            res+=local
+        """if _input[i]!=_input[i-1]:
             cur=cur*200
         else:
             if _input[i - 1] == 1:
@@ -119,41 +143,9 @@ def check_row(_input,size):
                     res+=local
                     local=0
                 else:
-                    local=0
+                    local=0"""
     return res
-def update_pre_elim(_input):
-    # lọc các đầu vào không cần thiết
-    max_i=20
-    min_i=0
-    max_j=20
-    min_j=0
-    #mục tiêu thu nhỏ phạm vi của nghiệm, đầu vào phải nằm trong hình chữ nhật với chỉ số hàng/cột nhỏ nhất/lớn nhất
-    #không cách quá các ô đã được đánh 5 đơn vị
 
-
-    for i in range(20):
-        for j in range(20):
-            if _input[i][j]!=0:
-                if i>3:
-                    min_i=i-4
-
-    for i in range(20):
-        for j in range(20):
-            if _input[j][i]!=0:
-                if i > 3:
-                    min_j = i - 4
-
-    for i in range(20):
-        for j in range(20):
-            if _input[19-i][19-j]!=0:
-                if i>3:
-                    max_i=24-i
-    for i in range(20):
-        for j in range(20):
-            if _input[19-j][19-i]!=0:
-                if i>3:
-                    max_j=24-i
-    return min_i,max_i,min_j,max_j
 x=[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -198,6 +190,18 @@ class CNN(nn.Module):
 
         #Softmax gets probabilities.
         return F.sigmoid(x)
-x=np.array(x,dtype=float)
-i,y,z=ai_brain(x)
-print (i,y,z,x[i][y] )
+model = CNN()
+model.double()
+model.load_state_dict(torch.load("model.pth"))
+#code ở hàm if_else
+def if_else(_input):
+    #_input là mảng 20x20 biểu diễn thế cờ
+    #muốn dùng hàm heuristic ở trên phải đưa vào đúng định dạng là mảng 20x20
+    #tức là nếu bạn muốn đánh nước i j mà muốn tính hàm heuristic của nước này thì gán _input[i][j]=1
+    #rồi dùng res=heuristic(_input)
+    row,col=0,0
+    return row,col #return hàng trước cột sau
+"""x=np.array(x,dtype=float)
+i,y,z=ai_brain(x,2)
+print (i,y,z,x[i][y] )"""
+print(heuristic(x))

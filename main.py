@@ -5,7 +5,7 @@ import minimax as mnm
 
 def next_turn(row, column):
     #command khi bấm vào mỗi ô trên bàn
-    global player,mode,log_ai,step,openmove
+    global player,mode,log_ai,step
     #player turn
     step+=1
     while mode == 0:
@@ -13,7 +13,7 @@ def next_turn(row, column):
     if buttons[row][column]['text']=="" and check_winner() is False:
         buttons[row][column]['text']="x"
         log_ai[row][column]=-1
-        openmove.append([row,column])
+
         if check_winner() is False:
             label.config(text='ai turn')
         elif check_winner() is True:
@@ -22,8 +22,8 @@ def next_turn(row, column):
         elif check_winner() =='Tie':
             label.config(text='Tie!')
 
-        if step<1:
-            x,y=mnm.opening(openmove)
+        if step<2:
+            x,y=mnm.opening(log_ai)
         #choose mode for ai
         else:
             x,y=mnm.ai_brain(log_ai,mode)
@@ -110,8 +110,8 @@ def empty_space():
 def new_game():
     #tạo game mới
 
-    global log_ai,mode,step,open_move
-    open_move=[]
+    global log_ai,mode,step
+
     step=0
     mode=0
     log_ai=np.zeros((20,20))
@@ -121,7 +121,7 @@ def new_game():
             buttons[i][j].config(text="",)
 window=Tk()
 step=0
-openmove=[]
+
 window.title("gomoku")
 players=["x","o"]
 turn=0

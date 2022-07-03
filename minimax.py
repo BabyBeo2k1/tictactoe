@@ -359,15 +359,17 @@ def if_else(_input):
 """x=np.array(x,dtype=float)
 i,y,z=ai_brain(x,2)
 print (i,y,z,_input[i][y] )"""
-def opening(_input,step):
-    if step==1:
-        if _input[0][0]>10:
-            row=_input[0][0]-1
-        else:
-            row=_input[0][0]+1
-        if _input[0][1]>10:
-            col = _input[0][1] - 1
-        else:
-            col = _input[0][1] + 1
+def opening(_input):
+    for i in range(20):
+        for j in range(20):
+            if _input[i][j]==-1:
+                if i>10:
+                    row=i-1
+                else:
+                    row=i+1
+                if j>10:
+                    col = j - 1
+                else:
+                    col =j + 1
 
     return row,col

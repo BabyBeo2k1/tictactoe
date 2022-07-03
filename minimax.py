@@ -7,7 +7,7 @@ def ai_brain(_input,mode):
         res_row,res_col=if_else(_input)
     else:
         depth=2
-        minimax_res=algo(_input,depth,True,mode)
+        minimax_res=algo(_input,depth,True,mode,-pow(200,6),pow(200,6))
         res,res_row,res_col=minimax_res
 
     return res_row,res_col
@@ -50,7 +50,7 @@ def heuristic(_input):
             y.append(_input[19+row-column][column])
         res+=check_row(y,20-row)
     return res
-def algo(_input, depth, is_ai,mode):
+def algo(_input, depth, is_ai,mode,alpha,beta):
     # thuật minimax
     res_row=-1
     res_col=-1
@@ -60,33 +60,37 @@ def algo(_input, depth, is_ai,mode):
         elif mode==2:
             return heuristic_nn(_input),0,0
     if is_ai:
-        maxEval=-pow(200,5)
+        maxEval=-pow(200,6)
         for i in range(20):
             for j in range(20):
                 if _input[i][j]==0:
                     _input[i][j]=1
-                    eval,m,n=algo(_input,depth-1,False,mode)
+                    eval,m,n=algo(_input,depth-1,False,mode,alpha,beta)
                     if eval>maxEval:
                         res_col=j
                         res_row=i
                         maxEval=eval
-
+                    alpha=max(alpha,eval)
+                    if beta<=alpha:
+                        break
                     _input[i][j] = 0
 
         return maxEval,res_row,res_col
     else:
-        minEval=pow(200,5)
+        minEval=pow(200,6)
         for i in range(20):
             for j in range(20):
                 if _input[i][j] == 0:
                     _input[i][j] = -1
-                    eval,m,n = algo(_input, depth - 1, True,mode)
+                    eval,m,n = algo(_input, depth - 1, True,mode,alpha,beta)
                     if eval<minEval:
                         minEval=eval
                         res_col=j
                         res_row=i
                     _input[i][j] = 0
-
+                    beta =min(beta,eval)
+                    if beta <=alpha:
+                        break
         return minEval,res_row,res_col
 
 def check_row(_input,size):

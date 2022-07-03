@@ -3,13 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 def ai_brain(_input,mode):
-    if mode==3:
-        res_row,res_col=if_else(_input)
-    else:
+    res_row,res_col=if_else(_input)
+    if res_col==-1 and res_row==-1:
         depth=2
         minimax_res=algo(_input,depth,True,mode,-pow(200,6),pow(200,6))
         res,res_row,res_col=minimax_res
-
     return res_row,res_col
 def heuristic_nn(_input):
     _input=np.reshape(_input,(1,1,20,20))
@@ -107,8 +105,9 @@ def check_row(_input,size):
                     if _input[j]==-1:
                         local*=200
                     else:
+                        res += local
                         local=-1
-                        res+=local
+
             near_ai=i
             local=-1
             res+=local
@@ -120,8 +119,9 @@ def check_row(_input,size):
                     if _input[j]==-1:
                         local*=200
                     else:
+                        res += local
                         local=1
-                        res+=local
+
             near_pl=i
             local=1
             res+=local
@@ -199,86 +199,175 @@ model.double()
 model.load_state_dict(torch.load("model.pth"))
 #code ở hàm if_else
 def if_else(_input):
-    for i in range(17):
-        for j in range(17):
-            if x[i][j-1] == 0 and x[i][j] == -1 and x[i][j+1] == -1 and x[i][j+2] == -1 and x[i][j+3] == 0:
-                if heuristic(i, j-1) > heuristic(i, j+3):
-                    return i, j - 1
-                else:
-                    return i, j + 3
-            if x[i - 1][j] == 0 and x[i][j] == -1 and x[i + 1][j] == -1 and x[i + 2][j] == -1 and x[i + 3][j] == 0:
-                if heuristic(i - 1, j) > heuristic(i + 3, j): 
-                    return i-1, j
-                else:
-                    return i+3, j
-            if x[i - 1][j - 1] == 0 and x[i][j] == -1 and x[i + 1][j + 1] == -1 and x[i + 2][j + 2] == -1 and x[i + 3][j + 3] == 0:
-                if heuristic(i - 1, j - 1) > heuristic(i + 3, j + 3): 
-                    return i-1, j-1
-                else: 
-                    return i+3, j+3
-            if x[i + 3][j - 1] == 0 and x[i + 2][j] == -1 and x[i + 1][j + 1] == -1 and x[i][j + 2] == -1 and x[i - 1][j + 3] == 0:
-                if heuristic(i + 3, j - 1) > heuristic(i - 1, j + 3): 
-                    return i+3, j-1
-                else: 
-                    return i-1, j+3
-            if x[i][j - 1] == -1 and x[i][j] == -1 and x[i][j + 1] == -1 and x[i][j + 2] == -1 and x[i][j + 3] == 0:
-                return i, j + 3
-            if x[i - 1][j] == -1 and x[i][j] == -1 and x[i + 1][j] == -1 and x[i + 2][j] == -1 and x[i + 3][j] == 0:
-                return i + 3, j
-            if x[i - 1][j - 1] == -1 and x[i][j] == -1 and x[i + 1][j + 1] == -1 and x[i + 2][j + 2] == -1 and x[i + 3][j + 3] == 0:
-                return i + 3, j + 3
-            if x[i + 3][j - 1] == -1 and x[i + 2][j] == -1 and x[i + 1][j + 1] == -1 and x[i][j + 2] == -1 and x[i - 1][j + 3] == 0:
-                return i - 1, j + 3
-            if x[i][j - 1] == 0 and x[i][j] == -1 and x[i][j + 1] == -1 and x[i][j + 2] == -1 and x[i][j + 3] == -1:
-                return i, j - 1
-            if x[i - 1][j] == 0 and x[i][j] == -1 and x[i + 1][j] == -1 and x[i + 2][j] == -1 and x[i + 3][j] == -1:
-                return i - 1, j
-            if x[i - 1][j - 1] == 0 and x[i][j] == -1 and x[i + 1][j + 1] == -1 and x[i + 2][j + 2] == -1 and x[i + 3][j + 3] == -1:
-                return i - 1, j - 1
-            if x[i + 3][j - 1] == 0 and x[i + 2][j] == -1 and x[i + 1][j + 1] == -1 and x[i][j + 2] == -1 and x[i - 1][j + 3] == -1:
-                return i + 3, j - 1
+    row,col=-1,-1
+    for i in range(1, 17):
+        for j in range(1, 17):
+            if _input[i][j - 1] == 0 and _input[i][j] == -1 and _input[i][j + 1] == -1 and _input[i][j + 2] == -1 and \
+                    _input[i][j + 3] == 0:
+                _input[i][j - 1] = 1
+                a = heuristic(x)
+                _input[i][j - 1] = 0
+                _input[i][j + 3] = 1
+                b = heuristic(x)
+                _input[i][j + 3] = 0
 
-    for i in range(17):
-        for j in range(17):
-            if x[i][j-1] == 0 and x[i][j] == 1 and x[i][j+1] == 1 and x[i][j+2] == 1 and x[i][j+3] == 0:
-                if heuristic(i, j-1) > heuristic(i, j+3):
-                    return i, j - 1
-                else: 
-                    return i, j + 3
-            if x[i - 1][j] == 0 and x[i][j] == 1 and x[i + 1][j] == 1 and x[i + 2][j] == 1 and x[i + 3][j] == 0:
-                if heuristic(i - 1, j) > heuristic(i + 3, j): 
-                    return i-1, j
-                else: 
-                    return i+3, j
-            if x[i - 1][j - 1] == 0 and x[i][j] == 1 and x[i + 1][j + 1] == 1 and x[i + 2][j + 2] == 1 and x[i + 3][j + 3] == 0:
-                if heuristic(i - 1, j - 1) > heuristic(i + 3, j + 3): 
-                    return i-1, j-1
-                else: 
-                    return i+3, j+3
-            if x[i + 3][j - 1] == 0 and x[i + 2][j] == 1 and x[i + 1][j + 1] == 1 and x[i][j + 2] == 1 and x[i - 1][j + 3] == 0:
-                if heuristic(i + 3, j - 1) > heuristic(i - 1, j + 3):
-                    return i+3, j-1
-                else: 
-                    return i-1, j+3
-            if x[i][j - 1] == 1 and x[i][j] == 1 and x[i][j + 1] == 1 and x[i][j + 2] == 1 and x[i][j + 3] == 0:
-                return i, j + 3
-            if x[i - 1][j] == 1 and x[i][j] == 1 and x[i + 1][j] == 1 and x[i + 2][j] == 1 and x[i + 3][j] == 0:
-                return i + 3, j
-            if x[i - 1][j - 1] == 1 and x[i][j] == 1 and x[i + 1][j + 1] == 1 and x[i + 2][j + 2] == 1 and x[i + 3][j + 3] == 0:
-                return i + 3, j + 3
-            if x[i + 3][j - 1] == 1 and x[i + 2][j] == 1 and x[i + 1][j + 1] == 1 and x[i][j + 2] == 1 and x[i - 1][j + 3] == 0:
-                return i - 1, j + 3
-            if x[i][j - 1] == 0 and x[i][j] == 1 and x[i][j + 1] == 1 and x[i][j + 2] == 1 and x[i][j + 3] == 1:
-                return i, j - 1
-            if x[i - 1][j] == 0 and x[i][j] == 1 and x[i + 1][j] == 1 and x[i + 2][j] == 1 and x[i + 3][j] == 1:
-                return i - 1, j
-            if x[i - 1][j - 1] == 0 and x[i][j] == 1 and x[i + 1][j + 1] == 1 and x[i + 2][j + 2] == 1 and x[i + 3][j + 3] == 1:
-                return i - 1, j - 1
-            if x[i + 3][j - 1] == 0 and x[i + 2][j] == 1 and x[i + 1][j + 1] == 1 and x[i][j + 2] == 1 and x[i - 1][j + 3] == 1:
-                return i + 3, j - 1
-    row,col=0,0
-    return row,col #return hàng trước cột sau
+                if a > b:
+                    row,col=i, j - 1
+                else:
+                    row,col=i, j + 3
+            if _input[i - 1][j] == 0 and _input[i][j] == -1 and _input[i + 1][j] == -1 and _input[i + 2][j] == -1 and \
+                    _input[i + 3][j] == 0:
+                _input[i - 1][j] = 1
+                a = heuristic(x)
+                _input[i - 1][j] = 0
+                _input[i + 3][j] = 1
+                b = heuristic(x)
+                _input[i + 3][j] = 0
+
+                if a > b:
+                    row,col=i - 1, j
+                else:
+                    row,col=i + 3, j
+            if _input[i - 1][j - 1] == 0 and _input[i][j] == -1 and _input[i + 1][j + 1] == -1 and _input[i + 2][
+                j + 2] == -1 and _input[i + 3][j + 3] == 0:
+                _input[i - 1][j - 1] = 1
+                a = heuristic(x)
+                _input[i - 1][j - 1] = 0
+                _input[i + 3][j + 3] = 1
+                b = heuristic(x)
+                _input[i + 3][j + 3] = 0
+                if a > b:
+                    row,col=i - 1, j - 1
+                else:
+                    row,col=i + 3, j + 3
+            if _input[i + 3][j - 1] == 0 and _input[i + 2][j] == -1 and _input[i + 1][j + 1] == -1 and _input[i][
+                j + 2] == -1 and _input[i - 1][j + 3] == 0:
+                _input[i + 3][j - 1] = 1
+                a = heuristic(x)
+                _input[i + 3][j - 1] = 0
+                _input[i - 1][j + 3] = 1
+                b = heuristic(x)
+                _input[i - 1][j + 3] = 0
+
+                if a > b:
+                    row,col=i + 3, j - 1
+                else:
+                    row,col=i - 1, j + 3
+            if _input[i][j - 1] == -1 and _input[i][j] == -1 and _input[i][j + 1] == -1 and _input[i][j + 2] == -1 and \
+                    _input[i][j + 3] == 0:
+                row,col=i, j + 3
+            if _input[i - 1][j] == -1 and _input[i][j] == -1 and _input[i + 1][j] == -1 and _input[i + 2][j] == -1 and \
+                    _input[i + 3][j] == 0:
+                row,col=i + 3, j
+            if _input[i - 1][j - 1] == -1 and _input[i][j] == -1 and _input[i + 1][j + 1] == -1 and _input[i + 2][
+                j + 2] == -1 and _input[i + 3][j + 3] == 0:
+                row,col=i + 3, j + 3
+            if _input[i + 3][j - 1] == -1 and _input[i + 2][j] == -1 and _input[i + 1][j + 1] == -1 and _input[i][
+                j + 2] == -1 and _input[i - 1][j + 3] == 0:
+                row,col=i - 1, j + 3
+            if _input[i][j - 1] == 0 and _input[i][j] == -1 and _input[i][j + 1] == -1 and _input[i][j + 2] == -1 and \
+                    _input[i][j + 3] == -1:
+                row,col=i, j - 1
+            if _input[i - 1][j] == 0 and _input[i][j] == -1 and _input[i + 1][j] == -1 and _input[i + 2][j] == -1 and \
+                    _input[i + 3][j] == -1:
+                row,col=i - 1, j
+            if _input[i - 1][j - 1] == 0 and _input[i][j] == -1 and _input[i + 1][j + 1] == -1 and _input[i + 2][
+                j + 2] == -1 and _input[i + 3][j + 3] == -1:
+                row,col=i - 1, j - 1
+            if _input[i + 3][j - 1] == 0 and _input[i + 2][j] == -1 and _input[i + 1][j + 1] == -1 and _input[i][
+                j + 2] == -1 and _input[i - 1][j + 3] == -1:
+                row,col=i + 3, j - 1
+
+    for i in range(1, 17):
+        for j in range(1, 17):
+            if _input[i][j - 1] == 0 and _input[i][j] == 1 and _input[i][j + 1] == 1 and _input[i][j + 2] == 1 and \
+                    _input[i][j + 3] == 0:
+                _input[i][j - 1] = 1
+                a = heuristic(x)
+                _input[i][j - 1] = 0
+                _input[i][j + 3] = 1
+                b = heuristic(x)
+                _input[i][j + 3] = 0
+
+                if a > b:
+                    row,col=i, j - 1
+                else:
+                    row,col=i, j + 3
+            if _input[i - 1][j] == 0 and _input[i][j] == 1 and _input[i + 1][j] == 1 and _input[i + 2][j] == 1 and \
+                    _input[i + 3][j] == 0:
+                _input[i - 1][j] = 1
+                a = heuristic(x)
+                _input[i - 1][j] = 0
+                _input[i + 3][j] = 1
+                b = heuristic(x)
+                _input[i + 3][j] = 0
+
+                if a > b:
+                    row,col=i - 1, j
+                else:
+                    row,col=i + 3, j
+            if _input[i - 1][j - 1] == 0 and _input[i][j] == 1 and _input[i + 1][j + 1] == 1 and _input[i + 2][
+                j + 2] == 1 and _input[i + 3][j + 3] == 0:
+                _input[i - 1][j - 1] = 1
+                a = heuristic(x)
+                _input[i - 1][j - 1] = 0
+                _input[i + 3][j + 3] = 1
+                b = heuristic(x)
+                _input[i + 3][j + 3] = 0
+                if a > b:
+                    row,col=i - 1, j - 1
+                else:
+                    row,col=i + 3, j + 3
+            if _input[i + 3][j - 1] == 0 and _input[i + 2][j] == 1 and _input[i + 1][j + 1] == 1 and _input[i][
+                j + 2] == 1 and _input[i - 1][j + 3] == 0:
+                _input[i + 3][j - 1] = 1
+                a = heuristic(x)
+                _input[i + 3][j - 1] = 0
+                _input[i - 1][j + 3] = 1
+                b = heuristic(x)
+                _input[i - 1][j + 3] = 0
+
+                if a > b:
+                    row,col=i + 3, j - 1
+                else:
+                    row,col=i - 1, j + 3
+            if _input[i][j - 1] == 1 and _input[i][j] == 1 and _input[i][j + 1] == 1 and _input[i][j + 2] == 1 and \
+                    _input[i][j + 3] == 0:
+                row,col=i, j + 3
+            if _input[i - 1][j] == 1 and _input[i][j] == 1 and _input[i + 1][j] == 1 and _input[i + 2][j] == 1 and \
+                    _input[i + 3][j] == 0:
+                row,col=i + 3, j
+            if _input[i - 1][j - 1] == 1 and _input[i][j] == 1 and _input[i + 1][j + 1] == 1 and _input[i + 2][
+                j + 2] == 1 and _input[i + 3][j + 3] == 0:
+                row,col=i + 3, j + 3
+            if _input[i + 3][j - 1] == 1 and _input[i + 2][j] == 1 and _input[i + 1][j + 1] == 1 and _input[i][
+                j + 2] == 1 and _input[i - 1][j + 3] == 0:
+                row,col=i - 1, j + 3
+            if _input[i][j - 1] == 0 and _input[i][j] == 1 and _input[i][j + 1] == 1 and _input[i][j + 2] == 1 and \
+                    _input[i][j + 3] == 1:
+                row,col=i, j - 1
+            if _input[i - 1][j] == 0 and _input[i][j] == 1 and _input[i + 1][j] == 1 and _input[i + 2][j] == 1 and \
+                    _input[i + 3][j] == 1:
+                row,col=i - 1, j
+            if _input[i - 1][j - 1] == 0 and _input[i][j] == 1 and _input[i + 1][j + 1] == 1 and _input[i + 2][
+                j + 2] == 1 and _input[i + 3][j + 3] == 1:
+                row,col=i - 1, j - 1
+            if _input[i + 3][j - 1] == 0 and _input[i + 2][j] == 1 and _input[i + 1][j + 1] == 1 and _input[i][
+                j + 2] == 1 and _input[i - 1][j + 3] == 1:
+                row,col=i + 3, j - 1
+    return row, col
 """x=np.array(x,dtype=float)
 i,y,z=ai_brain(x,2)
-print (i,y,z,x[i][y] )"""
-print(heuristic(x))
+print (i,y,z,_input[i][y] )"""
+def opening(_input,step):
+    if step==1:
+        if _input[0][0]>10:
+            row=_input[0][0]-1
+        else:
+            row=_input[0][0]+1
+        if _input[0][1]>10:
+            col = _input[0][1] - 1
+        else:
+            col = _input[0][1] + 1
+
+    return row,col

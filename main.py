@@ -5,7 +5,7 @@ import minimax as mnm
 
 def next_turn(row, column):
     #command khi bấm vào mỗi ô trên bàn
-    global player,mode,log_ai,step
+    global player,mode,log_ai,step,openmove
     #player turn
     step+=1
     while mode == 0:
@@ -13,6 +13,7 @@ def next_turn(row, column):
     if buttons[row][column]['text']=="" and check_winner() is False:
         buttons[row][column]['text']="x"
         log_ai[row][column]=-1
+        openmove.append([row,column])
         if check_winner() is False:
             label.config(text='ai turn')
         elif check_winner() is True:
@@ -21,8 +22,8 @@ def next_turn(row, column):
         elif check_winner() =='Tie':
             label.config(text='Tie!')
 
-        if step<5:
-            x,y=mnm.ai_brain(log_ai,3)
+        if step<1:
+            x,y=mnm.opening(openmove)
         #choose mode for ai
         else:
             x,y=mnm.ai_brain(log_ai,mode)
@@ -109,7 +110,8 @@ def empty_space():
 def new_game():
     #tạo game mới
 
-    global log_ai,mode,step
+    global log_ai,mode,step,open_move
+    open_move=[]
     step=0
     mode=0
     log_ai=np.zeros((20,20))
@@ -119,6 +121,7 @@ def new_game():
             buttons[i][j].config(text="",)
 window=Tk()
 step=0
+openmove=[]
 window.title("gomoku")
 players=["x","o"]
 turn=0
@@ -146,21 +149,18 @@ def choose_algo():
         mode = 1
     elif clicked.get() == "Minimax using ANN model":
         mode = 2
-    elif clicked.get()=="IF ELSE":
-        mode=3
 
 
 # các thuật toán
 options = [
     "Minimax using manual heuristic",
     "Minimax using ANN model",
-    "IF ELSE"
 ]
 
 clicked = StringVar()
 
 # thuật toán default
-clicked.set("minimax prune")
+clicked.set("choose the algorithm first")
 
 # Create Dropdown menu
 drop = OptionMenu(window, clicked, *options)

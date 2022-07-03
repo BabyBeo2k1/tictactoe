@@ -195,10 +195,83 @@ model.double()
 model.load_state_dict(torch.load("model.pth"))
 #code ở hàm if_else
 def if_else(_input):
-    #_input là mảng 20x20 biểu diễn thế cờ
-    #muốn dùng hàm heuristic ở trên phải đưa vào đúng định dạng là mảng 20x20
-    #tức là nếu bạn muốn đánh nước i j mà muốn tính hàm heuristic của nước này thì gán _input[i][j]=1
-    #rồi dùng res=heuristic(_input)
+    for i in range(17):
+        for j in range(17):
+            if x[i][j-1] == 0 and x[i][j] == -1 and x[i][j+1] == -1 and x[i][j+2] == -1 and x[i][j+3] == 0:
+                if heuristic(i, j-1) > heuristic(i, j+3):
+                    return i, j - 1
+                else:
+                    return i, j + 3
+            if x[i - 1][j] == 0 and x[i][j] == -1 and x[i + 1][j] == -1 and x[i + 2][j] == -1 and x[i + 3][j] == 0:
+                if heuristic(i - 1, j) > heuristic(i + 3, j): 
+                    return i-1, j
+                else:
+                    return i+3, j
+            if x[i - 1][j - 1] == 0 and x[i][j] == -1 and x[i + 1][j + 1] == -1 and x[i + 2][j + 2] == -1 and x[i + 3][j + 3] == 0:
+                if heuristic(i - 1, j - 1) > heuristic(i + 3, j + 3): 
+                    return i-1, j-1
+                else: 
+                    return i+3, j+3
+            if x[i + 3][j - 1] == 0 and x[i + 2][j] == -1 and x[i + 1][j + 1] == -1 and x[i][j + 2] == -1 and x[i - 1][j + 3] == 0:
+                if heuristic(i + 3, j - 1) > heuristic(i - 1, j + 3): 
+                    return i+3, j-1
+                else: 
+                    return i-1, j+3
+            if x[i][j - 1] == -1 and x[i][j] == -1 and x[i][j + 1] == -1 and x[i][j + 2] == -1 and x[i][j + 3] == 0:
+                return i, j + 3
+            if x[i - 1][j] == -1 and x[i][j] == -1 and x[i + 1][j] == -1 and x[i + 2][j] == -1 and x[i + 3][j] == 0:
+                return i + 3, j
+            if x[i - 1][j - 1] == -1 and x[i][j] == -1 and x[i + 1][j + 1] == -1 and x[i + 2][j + 2] == -1 and x[i + 3][j + 3] == 0:
+                return i + 3, j + 3
+            if x[i + 3][j - 1] == -1 and x[i + 2][j] == -1 and x[i + 1][j + 1] == -1 and x[i][j + 2] == -1 and x[i - 1][j + 3] == 0:
+                return i - 1, j + 3
+            if x[i][j - 1] == 0 and x[i][j] == -1 and x[i][j + 1] == -1 and x[i][j + 2] == -1 and x[i][j + 3] == -1:
+                return i, j - 1
+            if x[i - 1][j] == 0 and x[i][j] == -1 and x[i + 1][j] == -1 and x[i + 2][j] == -1 and x[i + 3][j] == -1:
+                return i - 1, j
+            if x[i - 1][j - 1] == 0 and x[i][j] == -1 and x[i + 1][j + 1] == -1 and x[i + 2][j + 2] == -1 and x[i + 3][j + 3] == -1:
+                return i - 1, j - 1
+            if x[i + 3][j - 1] == 0 and x[i + 2][j] == -1 and x[i + 1][j + 1] == -1 and x[i][j + 2] == -1 and x[i - 1][j + 3] == -1:
+                return i + 3, j - 1
+
+    for i in range(17):
+        for j in range(17):
+            if x[i][j-1] == 0 and x[i][j] == 1 and x[i][j+1] == 1 and x[i][j+2] == 1 and x[i][j+3] == 0:
+                if heuristic(i, j-1) > heuristic(i, j+3):
+                    return i, j - 1
+                else: 
+                    return i, j + 3
+            if x[i - 1][j] == 0 and x[i][j] == 1 and x[i + 1][j] == 1 and x[i + 2][j] == 1 and x[i + 3][j] == 0:
+                if heuristic(i - 1, j) > heuristic(i + 3, j): 
+                    return i-1, j
+                else: 
+                    return i+3, j
+            if x[i - 1][j - 1] == 0 and x[i][j] == 1 and x[i + 1][j + 1] == 1 and x[i + 2][j + 2] == 1 and x[i + 3][j + 3] == 0:
+                if heuristic(i - 1, j - 1) > heuristic(i + 3, j + 3): 
+                    return i-1, j-1
+                else: 
+                    return i+3, j+3
+            if x[i + 3][j - 1] == 0 and x[i + 2][j] == 1 and x[i + 1][j + 1] == 1 and x[i][j + 2] == 1 and x[i - 1][j + 3] == 0:
+                if heuristic(i + 3, j - 1) > heuristic(i - 1, j + 3):
+                    return i+3, j-1
+                else: 
+                    return i-1, j+3
+            if x[i][j - 1] == 1 and x[i][j] == 1 and x[i][j + 1] == 1 and x[i][j + 2] == 1 and x[i][j + 3] == 0:
+                return i, j + 3
+            if x[i - 1][j] == 1 and x[i][j] == 1 and x[i + 1][j] == 1 and x[i + 2][j] == 1 and x[i + 3][j] == 0:
+                return i + 3, j
+            if x[i - 1][j - 1] == 1 and x[i][j] == 1 and x[i + 1][j + 1] == 1 and x[i + 2][j + 2] == 1 and x[i + 3][j + 3] == 0:
+                return i + 3, j + 3
+            if x[i + 3][j - 1] == 1 and x[i + 2][j] == 1 and x[i + 1][j + 1] == 1 and x[i][j + 2] == 1 and x[i - 1][j + 3] == 0:
+                return i - 1, j + 3
+            if x[i][j - 1] == 0 and x[i][j] == 1 and x[i][j + 1] == 1 and x[i][j + 2] == 1 and x[i][j + 3] == 1:
+                return i, j - 1
+            if x[i - 1][j] == 0 and x[i][j] == 1 and x[i + 1][j] == 1 and x[i + 2][j] == 1 and x[i + 3][j] == 1:
+                return i - 1, j
+            if x[i - 1][j - 1] == 0 and x[i][j] == 1 and x[i + 1][j + 1] == 1 and x[i + 2][j + 2] == 1 and x[i + 3][j + 3] == 1:
+                return i - 1, j - 1
+            if x[i + 3][j - 1] == 0 and x[i + 2][j] == 1 and x[i + 1][j + 1] == 1 and x[i][j + 2] == 1 and x[i - 1][j + 3] == 1:
+                return i + 3, j - 1
     row,col=0,0
     return row,col #return hàng trước cột sau
 """x=np.array(x,dtype=float)

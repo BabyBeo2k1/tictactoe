@@ -2,12 +2,16 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+
 def ai_brain(_input,mode):
+
     res_row,res_col=if_else(_input)
+    max_up, max_down, max_left, max_right =localize(_input)
     if res_col==-1 and res_row==-1:
-        depth=2
-        minimax_res=algo(_input,depth,True,mode,-pow(200,6),pow(200,6))
-        res,res_row,res_col=minimax_res
+        depth = 3
+        minimax_res = algo(_input, depth, True, mode, -pow(200, 6), pow(200, 6), max_up, max_down, max_left, max_right)
+        res, res_row, res_col = minimax_res
+        print("endstep")
     return res_row,res_col
 def heuristic_nn(_input):
     _input=np.reshape(_input,(1,1,20,20))
@@ -48,7 +52,7 @@ def heuristic(_input):
             y.append(_input[19+row-column][column])
         res+=check_row(y,20-row)
     return res
-def algo(_input, depth, is_ai,mode,alpha,beta):
+def algo(_input, depth, is_ai,mode,alpha,beta,max_up,max_down,max_left,max_right):
     # thuật minimax
     res_row=-1
     res_col=-1
@@ -59,15 +63,18 @@ def algo(_input, depth, is_ai,mode,alpha,beta):
             return heuristic_nn(_input),0,0
     if is_ai:
         maxEval=-pow(200,6)
-        for i in range(20):
-            for j in range(20):
+        for i in range(max(max_left-4,0),min(max_right+5,20)):
+            for j in range(max(max_up-4,0),min(max_down+5,20)):
+
                 if _input[i][j]==0:
+                    #print(i, j)
                     _input[i][j]=1
-                    eval,m,n=algo(_input,depth-1,False,mode,alpha,beta)
+                    eval,m,n=algo(_input,depth-1,False,mode,alpha,beta,max_up,max_down,max_left,max_right)
                     if eval>maxEval:
                         res_col=j
                         res_row=i
                         maxEval=eval
+                        print(i,j)
                     alpha=max(alpha,eval)
                     if beta<=alpha:
                         break
@@ -76,15 +83,18 @@ def algo(_input, depth, is_ai,mode,alpha,beta):
         return maxEval,res_row,res_col
     else:
         minEval=pow(200,6)
-        for i in range(20):
-            for j in range(20):
+        for i in range(max(max_left-4,0),min(max_right+5,20)):
+            for j in range(max(max_up-4,0),min(max_down+5,20)):
+
                 if _input[i][j] == 0:
+                    #print(i, j)
                     _input[i][j] = -1
-                    eval,m,n = algo(_input, depth - 1, True,mode,alpha,beta)
+                    eval,m,n = algo(_input, depth - 1, True,mode,alpha,beta,max_up,max_down,max_left,max_right)
                     if eval<minEval:
                         minEval=eval
                         res_col=j
                         res_row=i
+                        print(i,j)
                     _input[i][j] = 0
                     beta =min(beta,eval)
                     if beta <=alpha:
@@ -125,37 +135,14 @@ def check_row(_input,size):
             near_pl=i
             local=1
             res+=local
-        """if _input[i]!=_input[i-1]:
-            cur=cur*200
-        else:
-            if _input[i - 1] == 1:
-                near_ai = i - 1
-            else:
-                near_pl = i - 1
-            if _input[i]==0:
-                local+=cur
-                cur=0
-
-            elif _input[i]==1:
-                if (i-near_ai)>5:
-                    res+=local
-                    local=0
-                else:
-                    local=0
-            else:
-                if(i-near_pl)>5:
-                    res+=local
-                    local=0
-                else:
-                    local=0"""
     return res
 
-x=[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+test_log=[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-   [0,0,0,0,0,-1,-1,-1,0,0,0,0,0,0,0,0,0,0,0,0],
-   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -205,10 +192,10 @@ def if_else(_input):
             if _input[i][j - 1] == 0 and _input[i][j] == -1 and _input[i][j + 1] == -1 and _input[i][j + 2] == -1 and \
                     _input[i][j + 3] == 0:
                 _input[i][j - 1] = 1
-                a = heuristic(x)
+                a = heuristic(_input)
                 _input[i][j - 1] = 0
                 _input[i][j + 3] = 1
-                b = heuristic(x)
+                b = heuristic(_input)
                 _input[i][j + 3] = 0
 
                 if a > b:
@@ -218,10 +205,10 @@ def if_else(_input):
             if _input[i - 1][j] == 0 and _input[i][j] == -1 and _input[i + 1][j] == -1 and _input[i + 2][j] == -1 and \
                     _input[i + 3][j] == 0:
                 _input[i - 1][j] = 1
-                a = heuristic(x)
+                a = heuristic(_input)
                 _input[i - 1][j] = 0
                 _input[i + 3][j] = 1
-                b = heuristic(x)
+                b = heuristic(_input)
                 _input[i + 3][j] = 0
 
                 if a > b:
@@ -231,10 +218,10 @@ def if_else(_input):
             if _input[i - 1][j - 1] == 0 and _input[i][j] == -1 and _input[i + 1][j + 1] == -1 and _input[i + 2][
                 j + 2] == -1 and _input[i + 3][j + 3] == 0:
                 _input[i - 1][j - 1] = 1
-                a = heuristic(x)
+                a = heuristic(_input)
                 _input[i - 1][j - 1] = 0
                 _input[i + 3][j + 3] = 1
-                b = heuristic(x)
+                b = heuristic(_input)
                 _input[i + 3][j + 3] = 0
                 if a > b:
                     row,col=i - 1, j - 1
@@ -243,10 +230,10 @@ def if_else(_input):
             if _input[i + 3][j - 1] == 0 and _input[i + 2][j] == -1 and _input[i + 1][j + 1] == -1 and _input[i][
                 j + 2] == -1 and _input[i - 1][j + 3] == 0:
                 _input[i + 3][j - 1] = 1
-                a = heuristic(x)
+                a = heuristic(_input)
                 _input[i + 3][j - 1] = 0
                 _input[i - 1][j + 3] = 1
-                b = heuristic(x)
+                b = heuristic(_input)
                 _input[i - 1][j + 3] = 0
 
                 if a > b:
@@ -283,10 +270,10 @@ def if_else(_input):
             if _input[i][j - 1] == 0 and _input[i][j] == 1 and _input[i][j + 1] == 1 and _input[i][j + 2] == 1 and \
                     _input[i][j + 3] == 0:
                 _input[i][j - 1] = 1
-                a = heuristic(x)
+                a = heuristic(_input)
                 _input[i][j - 1] = 0
                 _input[i][j + 3] = 1
-                b = heuristic(x)
+                b = heuristic(_input)
                 _input[i][j + 3] = 0
 
                 if a > b:
@@ -296,10 +283,10 @@ def if_else(_input):
             if _input[i - 1][j] == 0 and _input[i][j] == 1 and _input[i + 1][j] == 1 and _input[i + 2][j] == 1 and \
                     _input[i + 3][j] == 0:
                 _input[i - 1][j] = 1
-                a = heuristic(x)
+                a = heuristic(_input)
                 _input[i - 1][j] = 0
                 _input[i + 3][j] = 1
-                b = heuristic(x)
+                b = heuristic(_input)
                 _input[i + 3][j] = 0
 
                 if a > b:
@@ -309,10 +296,10 @@ def if_else(_input):
             if _input[i - 1][j - 1] == 0 and _input[i][j] == 1 and _input[i + 1][j + 1] == 1 and _input[i + 2][
                 j + 2] == 1 and _input[i + 3][j + 3] == 0:
                 _input[i - 1][j - 1] = 1
-                a = heuristic(x)
+                a = heuristic(_input)
                 _input[i - 1][j - 1] = 0
                 _input[i + 3][j + 3] = 1
-                b = heuristic(x)
+                b = heuristic(_input)
                 _input[i + 3][j + 3] = 0
                 if a > b:
                     row,col=i - 1, j - 1
@@ -321,10 +308,10 @@ def if_else(_input):
             if _input[i + 3][j - 1] == 0 and _input[i + 2][j] == 1 and _input[i + 1][j + 1] == 1 and _input[i][
                 j + 2] == 1 and _input[i - 1][j + 3] == 0:
                 _input[i + 3][j - 1] = 1
-                a = heuristic(x)
+                a = heuristic(_input)
                 _input[i + 3][j - 1] = 0
                 _input[i - 1][j + 3] = 1
-                b = heuristic(x)
+                b = heuristic(_input)
                 _input[i - 1][j + 3] = 0
 
                 if a > b:
@@ -373,3 +360,35 @@ def opening(_input):
                     col =j + 1
 
     return row,col
+def localize(_input):
+    print (_input)
+    max_up,max_down,max_left,max_right=0,19,0,19
+    for i in range(20):
+        for j in range (20):
+            if _input[i][j]!=0:
+                max_down=i
+                break
+    for j in range(20):
+        for i in range(20):
+            if _input[i][j]!=0:
+                max_right=j
+                break
+    for i in range(20):
+        for j in range(20):
+            if _input[19-i][j]!=0:
+                max_up=19-i
+                break
+    for j in range(20):
+        for i in range(20):
+            if _input[i][19-j]!=0:
+                max_left=19-j
+                break
+
+    print("bounnd:")
+    print(max_up,max_down,max_left,max_right)
+    print (_input)
+    return max_up,max_down,max_left,max_right
+"""localize(test_log)
+a,b=ai_brain(test_log,1)
+print(a,b)
+print(test_log)"""

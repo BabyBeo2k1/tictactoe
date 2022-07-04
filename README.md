@@ -5,5 +5,6 @@ In order to run, it has several environment requirement:
 - python =3.9
 - pytorch
 - tkinter 
+
 To excecute, run this command in terminal:
  python3 main.py

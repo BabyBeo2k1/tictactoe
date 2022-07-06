@@ -21,17 +21,17 @@ def next_turn(row, column):
 
         elif check_winner() =='Tie':
             label.config(text='Tie!')
-        print(log_ai)
+        #print(log_ai)
 
         if step<2:
             x,y=mnm.opening(log_ai)
         else:
             x,y=mnm.ai_brain(log_ai,mode)
         print(x,y)
-        print(log_ai)
+        #print(log_ai)
         if buttons[x][y]['text']==""and check_winner() is False :
             log_ai[x][y]=1
-            print(log_ai)
+
             buttons[x][y]['text'] = 'o'
             if check_winner() is False:
                 label.config(text=player +' turn')

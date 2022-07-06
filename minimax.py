@@ -2,16 +2,24 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+import time
+
+
 
 def ai_brain(_input,mode):
 
     res_row,res_col=if_else(_input)
     max_up, max_down, max_left, max_right =localize(_input)
+    t0 = time.time()
     if res_col==-1 and res_row ==-1:
-        depth = 2
+        depth = 3
         minimax_res = algo(_input, depth, True, mode, -pow(200, 6), pow(200, 6), max_up, max_down, max_left, max_right)
         res, res_row, res_col = minimax_res
+    #print(_input)
+    t1 = time.time()
+    total = t1 - t0
     print("endstep")
+    print(total)
     return res_row,res_col
 def heuristic_nn(_input):
     _input=np.reshape(_input,(1,1,20,20))
@@ -63,42 +71,44 @@ def algo(_input, depth, is_ai,mode,alpha,beta,max_up,max_down,max_left,max_right
             return heuristic_nn(_input),0,0
     if is_ai:
         maxEval=-pow(200,6)
-        for i in range(max(max_left-3,0),min(max_right+4,20)):
-            for j in range(max(max_up-3,0),min(max_down+4,20)):
+        for i in range(max(max_left-1,0),min(max_right+2,20)):
+            for j in range(max(max_up-1,0),min(max_down+2,20)):
+                if check_surround(_input,i,j):
+                    if _input[i][j]==0:
+                        #print(i, j)
+                        _input[i][j]=1
+                        eval,m,n=algo(_input,depth-1,False,mode,alpha,beta,max_up,max_down,max_left,max_right)
+                        if eval>maxEval:
+                            res_col=j
+                            res_row=i
+                            maxEval=eval
 
-                if _input[i][j]==0:
-                    #print(i, j)
-                    _input[i][j]=1
-                    eval,m,n=algo(_input,depth-1,False,mode,alpha,beta,max_up,max_down,max_left,max_right)
-                    if eval>maxEval:
-                        res_col=j
-                        res_row=i
-                        maxEval=eval
-                        print(i,j)
-                    alpha=max(alpha,eval)
-                    if beta<=alpha:
-                        break
-                    _input[i][j] = 0
+                        _input[i][j] = 0
+                        alpha=max(alpha,eval)
+
+                        if beta<=alpha:
+                            break
+
 
         return maxEval,res_row,res_col
     else:
         minEval=pow(200,6)
-        for i in range(max(max_left-3,0),min(max_right+4,20)):
-            for j in range(max(max_up-3,0),min(max_down+4,20)):
+        for i in range(max(max_left-1,0),min(max_right+2,20)):
+            for j in range(max(max_up-1,0),min(max_down+2,20)):
+                if check_surround(_input, i, j):
+                    if _input[i][j] == 0:
+                        #print(i, j)
+                        _input[i][j] = -1
+                        eval,m,n = algo(_input, depth - 1, True,mode,alpha,beta,max_up,max_down,max_left,max_right)
+                        if eval<minEval:
+                            minEval=eval
+                            res_col=j
+                            res_row=i
 
-                if _input[i][j] == 0:
-                    #print(i, j)
-                    _input[i][j] = -1
-                    eval,m,n = algo(_input, depth - 1, True,mode,alpha,beta,max_up,max_down,max_left,max_right)
-                    if eval<minEval:
-                        minEval=eval
-                        res_col=j
-                        res_row=i
-                        print(i,j)
-                    _input[i][j] = 0
-                    beta =min(beta,eval)
-                    if beta <=alpha:
-                        break
+                        _input[i][j] = 0
+                        beta =min(beta,eval)
+                        if beta <=alpha:
+                            break
         return minEval,res_row,res_col
 
 def check_row(_input,size):
@@ -113,7 +123,7 @@ def check_row(_input,size):
             if i-near_ai>5:
                 for j in range(near_ai+1,i):
                     if _input[j]==-1:
-                        local*=200
+                        local*=201
                     else:
                         res += (local-1)
                         local=-1
@@ -136,7 +146,11 @@ def check_row(_input,size):
             local=1
             res+=local
     return res
-
+def check_surround(_input,i,j):
+    if _input[i-1][j-1] and _input[i-1][j] and _input[i-1][j+1] and _input[i][j-1] and _input[i][j+1] and _input[i+1][j-1] and _input[i+1][j] and _input[i+1][j+1]:
+        return False
+    else:
+        return True
 test_log=[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -361,7 +375,7 @@ def opening(_input):
 
     return row,col
 def localize(_input):
-    print (_input)
+    #print (_input)
     max_up,max_down,max_left,max_right=0,19,0,19
     for i in range(20):
         for j in range (20):
@@ -384,9 +398,9 @@ def localize(_input):
                 max_left=19-j
                 break
 
-    print("bounnd:")
-    print(max_up,max_down,max_left,max_right)
-    print (_input)
+    #print("bounnd:")
+    #print(max_up,max_down,max_left,max_right)
+    #print (_input)
     return max_up,max_down,max_left,max_right
 """localize(test_log)
 a,b=ai_brain(test_log,1)

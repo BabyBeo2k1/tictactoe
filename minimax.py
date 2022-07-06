@@ -7,11 +7,11 @@ def ai_brain(_input,mode):
 
     res_row,res_col=if_else(_input)
     max_up, max_down, max_left, max_right =localize(_input)
-    if res_col==-1 and res_row==-1:
-        depth = 3
+    if res_col==-1 and res_row ==-1:
+        depth = 2
         minimax_res = algo(_input, depth, True, mode, -pow(200, 6), pow(200, 6), max_up, max_down, max_left, max_right)
         res, res_row, res_col = minimax_res
-        print("endstep")
+    print("endstep")
     return res_row,res_col
 def heuristic_nn(_input):
     _input=np.reshape(_input,(1,1,20,20))
@@ -63,8 +63,8 @@ def algo(_input, depth, is_ai,mode,alpha,beta,max_up,max_down,max_left,max_right
             return heuristic_nn(_input),0,0
     if is_ai:
         maxEval=-pow(200,6)
-        for i in range(max(max_left-4,0),min(max_right+5,20)):
-            for j in range(max(max_up-4,0),min(max_down+5,20)):
+        for i in range(max(max_left-3,0),min(max_right+4,20)):
+            for j in range(max(max_up-3,0),min(max_down+4,20)):
 
                 if _input[i][j]==0:
                     #print(i, j)
@@ -83,8 +83,8 @@ def algo(_input, depth, is_ai,mode,alpha,beta,max_up,max_down,max_left,max_right
         return maxEval,res_row,res_col
     else:
         minEval=pow(200,6)
-        for i in range(max(max_left-4,0),min(max_right+5,20)):
-            for j in range(max(max_up-4,0),min(max_down+5,20)):
+        for i in range(max(max_left-3,0),min(max_right+4,20)):
+            for j in range(max(max_up-3,0),min(max_down+4,20)):
 
                 if _input[i][j] == 0:
                     #print(i, j)
@@ -115,7 +115,7 @@ def check_row(_input,size):
                     if _input[j]==-1:
                         local*=200
                     else:
-                        res += local
+                        res += (local-1)
                         local=-1
 
             near_ai=i
@@ -265,7 +265,7 @@ def if_else(_input):
                 j + 2] == -1 and _input[i - 1][j + 3] == -1:
                 row,col=i + 3, j - 1
 
-    for i in range(1, 17):
+    """for i in range(1, 17):
         for j in range(1, 17):
             if _input[i][j - 1] == 0 and _input[i][j] == 1 and _input[i][j + 1] == 1 and _input[i][j + 2] == 1 and \
                     _input[i][j + 3] == 0:
@@ -341,7 +341,7 @@ def if_else(_input):
                 row,col=i - 1, j - 1
             if _input[i + 3][j - 1] == 0 and _input[i + 2][j] == 1 and _input[i + 1][j + 1] == 1 and _input[i][
                 j + 2] == 1 and _input[i - 1][j + 3] == 1:
-                row,col=i + 3, j - 1
+                row,col=i + 3, j - 1"""
     return row, col
 """x=np.array(x,dtype=float)
 i,y,z=ai_brain(x,2)
